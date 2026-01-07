@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PredixAI Predictive Maintenance</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dashboard-page">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-cogs"></i>
+                <span>PredixAI</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-tab="overview">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Overview</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="machines">
+                <i class="fas fa-server"></i>
+                <span>Machines</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="sensors">
+                <i class="fas fa-microchip"></i>
+                <span>Sensors</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="upload">
+                <i class="fas fa-upload"></i>
+                <span>Data Upload</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="predictions">
+                <i class="fas fa-brain"></i>
+                <span>AI Predictions</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="alerts">
+                <i class="fas fa-bell"></i>
+                <span>Alerts</span>
+                <span class="badge" id="alerts-badge">0</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="maintenance">
+                <i class="fas fa-tools"></i>
+                <span>Maintenance</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="history">
+                <i class="fas fa-history"></i>
+                <span>History</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="reports">
+                <i class="fas fa-file-alt"></i>
+                <span>Reports</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-details">
+                    <div class="user-name" id="current-user-name">Demo User</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+            </div>
+            <button class="logout-btn" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <button class="sidebar-toggle" onclick="toggleSidebar()" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 id="page-title">Dashboard Overview</h1>
+                <p id="page-subtitle">Monitor your equipment health in real-time</p>
+            </div>
+            <div class="header-right">
+                <div class="system-status">
+                    <div class="status-indicator" id="system-status">
+                        <i class="fas fa-circle"></i>
+                        <span id="status-text">Loading...</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="reset-btn" onclick="resetSensors()">
+                        <i class="fas fa-undo"></i>
+                        Reset to Normal
+                    </button>
+                    <button class="refresh-btn" onclick="refreshData()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tab Content Container -->
+        <div class="tab-content">
+
+            <!-- Overview Tab -->
+            <div id="overview-tab" class="tab-pane active">
+                <div class="overview-grid">
+                    <!-- Health Status Card -->
+                    <div class="metric-card health-card">
+                        <div class="card-header">
+                            <h3>Equipment Health</h3>
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                        <div class="card-content">
+                            <div class="health-indicator" id="health-indicator">
+                                <div class="health-circle">
+                                    <span id="health-percentage">85</span>
+                                    <span class="percentage-symbol">%</span>
+                                </div>
+                                <div class="health-label" id="health-label">Healthy</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Failure Risk Card -->
+                    <div class="metric-card risk-card">
+                        <div class="card-header">
+                            <h3>Failure Risk</h3>
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="card-content">
+                            <div class="risk-meter">
+                                <div class="risk-bar" id="risk-bar"></div>
+                            </div>
+                            <div class="risk-value" id="risk-value">15%</div>
+                        </div>
+                    </div>
+
+                    <!-- Remaining Useful Life -->
+                    <div class="metric-card rul-card">
+                        <div class="card-header">
+                            <h3>Remaining Useful Life</h3>
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="card-content">
+                            <div class="rul-value" id="rul-value">850</div>
+                            <div class="rul-unit">hours</div>
+                        </div>
+                    </div>
+
+                    <!-- System Summary -->
+                    <div class="metric-card summary-card">
+                        <div class="card-header">
+                            <h3>System Summary</h3>
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="card-content">
+                            <div class="summary-stats">
+                                <div class="summary-item">
+                                    <span class="summary-label">Active Sensors:</span>
+                                    <span class="summary-value">4</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">Alerts Today:</span>
+                                    <span class="summary-value" id="alerts-today">0</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-label">Uptime:</span>
+                                    <span class="summary-value">99.8%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Current Sensor Readings -->
+                    <div class="metric-card sensors-card">
+                        <div class="card-header">
+                            <h3>Current Sensors</h3>
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <div class="card-content">
+                            <div class="sensor-readings">
+                                <div class="sensor-reading">
+                                    <span class="sensor-label">Temperature:</span>
+                                    <span class="sensor-value" id="overview-temp">50.0°C</span>
+                                </div>
+                                <div class="sensor-reading">
+                                    <span class="sensor-label">Vibration:</span>
+                                    <span class="sensor-value" id="overview-vib">2.5 mm/s</span>
+                                </div>
+                                <div class="sensor-reading">
+                                    <span class="sensor-label">Pressure:</span>
+                                    <span class="sensor-value" id="overview-press">125.0 PSI</span>
+                                </div>
+                                <div class="sensor-reading">
+                                    <span class="sensor-label">RPM:</span>
+                                    <span class="sensor-value" id="overview-rpm">2000</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-row">
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <h3>Sensor Trends</h3>
+                        </div>
+                        <div class="card-content">
+                            <canvas id="trends-chart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <h3>Risk History</h3>
+                        </div>
+                        <div class="card-content">
+                            <canvas id="risk-chart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Machines Tab -->
+            <div id="machines-tab" class="tab-pane">
+                <div class="machines-container">
+                    <div class="machines-header">
+                        <h3>Machine Management</h3>
+                        <p>Add, edit, and monitor different machines and equipment</p>
+                        <button class="action-btn primary" onclick="showAddMachineModal()">
+                            <i class="fas fa-plus"></i>
+                            Add Machine
+                        </button>
+                    </div>
+
+                    <div class="current-machine">
+                        <div class="current-machine-header">
+                            <h4>Currently Monitoring</h4>
+                            <span class="current-machine-badge" id="current-machine-name">PredixAI Industrial Equipment</span>
+                        </div>
+                    </div>
+
+                    <div class="machines-grid" id="machines-grid">
+                        <!-- Machines will be populated by JavaScript -->
+                    </div>
+
+                    <div class="machines-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Machines:</span>
+                            <span class="stat-value" id="total-machines">1</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Healthy:</span>
+                            <span class="stat-value" id="healthy-machines">1</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Warning:</span>
+                            <span class="stat-value" id="warning-machines">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Critical:</span>
+                            <span class="stat-value" id="critical-machines">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Machine Modal -->
+                <div class="modal" id="add-machine-modal" style="display: none;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 id="modal-title">Add New Machine</h3>
+                            <button class="modal-close" onclick="hideAddMachineModal()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <form id="machine-form" class="modal-body">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="machine-name-input">Machine Name *</label>
+                                    <input type="text" id="machine-name-input" placeholder="e.g., Pump Station A" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="machine-type">Machine Type</label>
+                                    <select id="machine-type">
+                                        <option value="pump">Pump</option>
+                                        <option value="motor">Motor</option>
+                                        <option value="compressor">Compressor</option>
+                                        <option value="conveyor">Conveyor</option>
+                                        <option value="fan">Fan</option>
+                                        <option value="gearbox">Gearbox</option>
+                                        <option value="valve">Valve</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="machine-location">Location</label>
+                                    <input type="text" id="machine-location" placeholder="e.g., Production Line 1">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="machine-model">Model / Serial Number</label>
+                                    <input type="text" id="machine-model" placeholder="Model or serial number">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="machine-manufacturer">Manufacturer</label>
+                                    <input type="text" id="machine-manufacturer" placeholder="Equipment manufacturer">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="installation-date">Installation Date</label>
+                                    <input type="date" id="installation-date">
+                                </div>
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label for="machine-description">Description</label>
+                                <textarea id="machine-description" rows="3" placeholder="Additional details about the machine"></textarea>
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label for="machine-notes">Notes</label>
+                                <textarea id="machine-notes" rows="2" placeholder="Any special maintenance requirements or notes"></textarea>
+                            </div>
+                        </form>
+                        <div class="modal-footer">
+                            <button type="button" class="action-btn secondary" onclick="hideAddMachineModal()">Cancel</button>
+                            <button type="button" class="action-btn primary" onclick="saveMachine()">
+                                <i class="fas fa-save"></i>
+                                Save Machine
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sensors Tab -->
+            <div id="sensors-tab" class="tab-pane">
+                <div class="sensors-grid">
+                    <!-- Temperature Sensor -->
+                    <div class="sensor-card">
+                        <div class="sensor-header">
+                            <div class="sensor-icon temperature">
+                                <i class="fas fa-thermometer-half"></i>
+                            </div>
+                            <div class="sensor-info">
+                                <h3>Temperature</h3>
+                                <span class="sensor-unit">°C</span>
+                            </div>
+                        </div>
+                        <div class="sensor-controls">
+                            <input type="range" id="temp-slider" min="0" max="150" value="50" step="0.1">
+                            <div class="sensor-value">
+                                <span id="temp-value">50.0</span>
+                                <span class="unit">°C</span>
+                            </div>
+                        </div>
+                        <div class="sensor-chart">
+                            <canvas id="temp-chart" width="300" height="150"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Vibration Sensor -->
+                    <div class="sensor-card">
+                        <div class="sensor-header">
+                            <div class="sensor-icon vibration">
+                                <i class="fas fa-wave-square"></i>
+                            </div>
+                            <div class="sensor-info">
+                                <h3>Vibration</h3>
+                                <span class="sensor-unit">mm/s</span>
+                            </div>
+                        </div>
+                        <div class="sensor-controls">
+                            <input type="range" id="vib-slider" min="0" max="15" value="2.5" step="0.1">
+                            <div class="sensor-value">
+                                <span id="vib-value">2.5</span>
+                                <span class="unit">mm/s</span>
+                            </div>
+                        </div>
+                        <div class="sensor-chart">
+                            <canvas id="vib-chart" width="300" height="150"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Pressure Sensor -->
+                    <div class="sensor-card">
+                        <div class="sensor-header">
+                            <div class="sensor-icon pressure">
+                                <i class="fas fa-tachometer-alt"></i>
+                            </div>
+                            <div class="sensor-info">
+                                <h3>Pressure</h3>
+                                <span class="sensor-unit">PSI</span>
+                            </div>
+                        </div>
+                        <div class="sensor-controls">
+                            <input type="range" id="press-slider" min="0" max="300" value="125" step="0.5">
+                            <div class="sensor-value">
+                                <span id="press-value">125.0</span>
+                                <span class="unit">PSI</span>
+                            </div>
+                        </div>
+                        <div class="sensor-chart">
+                            <canvas id="press-chart" width="300" height="150"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- RPM Sensor -->
+                    <div class="sensor-card">
+                        <div class="sensor-header">
+                            <div class="sensor-icon rpm">
+                                <i class="fas fa-cog"></i>
+                            </div>
+                            <div class="sensor-info">
+                                <h3>RPM</h3>
+                                <span class="sensor-unit">RPM</span>
+                            </div>
+                        </div>
+                        <div class="sensor-controls">
+                            <input type="range" id="rpm-slider" min="0" max="4000" value="2000" step="10">
+                            <div class="sensor-value">
+                                <span id="rpm-value">2000</span>
+                                <span class="unit">RPM</span>
+                            </div>
+                        </div>
+                        <div class="sensor-chart">
+                            <canvas id="rpm-chart" width="300" height="150"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Control Panel -->
+                <div class="control-panel">
+                    <div class="panel-header">
+                        <h3>Control Panel</h3>
+                    </div>
+                    <div class="panel-content">
+                        <button class="control-btn primary" onclick="sendSensorData()">
+                            <i class="fas fa-paper-plane"></i>
+                            Send Data to AI
+                        </button>
+                        <button class="control-btn secondary" onclick="resetSensors()">
+                            <i class="fas fa-undo"></i>
+                            Reset to Normal
+                        </button>
+                        <button class="control-btn danger" onclick="simulateAnomaly()">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Simulate Anomaly
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Upload Tab -->
+            <div id="upload-tab" class="tab-pane">
+                <div class="upload-container">
+                    <div class="upload-header">
+                        <h3>Sensor Data Upload</h3>
+                        <p>Upload CSV or JSON files with sensor data for AI analysis and predictions</p>
+                    </div>
+
+                    <div class="upload-section">
+                        <div class="upload-card">
+                            <div class="card-header">
+                                <h4>File Upload</h4>
+                                <i class="fas fa-file-upload"></i>
+                            </div>
+                            <div class="card-content">
+                                <div class="upload-area" id="upload-area">
+                                    <div class="upload-icon">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                    </div>
+                                    <div class="upload-text">
+                                        <p><strong>Drag & drop files here</strong></p>
+                                        <p>or <span class="upload-link" id="upload-link">browse files</span></p>
+                                        <p class="upload-format">Supported formats: CSV, JSON</p>
+                                    </div>
+                                    <input type="file" id="file-input" accept=".csv,.json" style="display: none;">
+                                </div>
+
+                                <div class="upload-info">
+                                    <div class="info-item">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span>CSV files should have columns: temperature, vibration, pressure, rpm</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span>JSON files should be an array of sensor data objects</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="upload-preview" id="upload-preview" style="display: none;">
+                            <div class="card-header">
+                                <h4>Data Preview</h4>
+                                <i class="fas fa-table"></i>
+                            </div>
+                            <div class="card-content">
+                                <div class="preview-stats">
+                                    <div class="stat">
+                                        <span class="stat-label">Total Records:</span>
+                                        <span class="stat-value" id="preview-records">0</span>
+                                    </div>
+                                    <div class="stat">
+                                        <span class="stat-label">Columns:</span>
+                                        <span class="stat-value" id="preview-columns">0</span>
+                                    </div>
+                                </div>
+
+                                <div class="preview-table-container">
+                                    <table class="preview-table" id="preview-table">
+                                        <thead id="preview-header">
+                                            <!-- Headers will be populated by JavaScript -->
+                                        </thead>
+                                        <tbody id="preview-body">
+                                            <!-- Data will be populated by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="preview-actions">
+                                    <button class="action-btn primary" onclick="processUploadedData()">
+                                        <i class="fas fa-brain"></i>
+                                        Analyze with AI
+                                    </button>
+                                    <button class="action-btn secondary" onclick="clearUpload()">
+                                        <i class="fas fa-trash"></i>
+                                        Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="analysis-results" id="analysis-results" style="display: none;">
+                        <div class="card-header">
+                            <h4>AI Analysis Results</h4>
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="card-content">
+                            <div class="results-summary" id="results-summary">
+                                <!-- Analysis summary will be populated by JavaScript -->
+                            </div>
+
+                            <div class="results-details" id="results-details">
+                                <!-- Detailed results will be populated by JavaScript -->
+                            </div>
+
+                            <div class="results-alerts" id="results-alerts">
+                                <!-- Alerts will be populated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Predictions Tab -->
+            <div id="predictions-tab" class="tab-pane">
+                <div class="predictions-container">
+                    <div class="prediction-card main-prediction">
+                        <div class="card-header">
+                            <h3>AI Analysis Results</h3>
+                            <span class="ai-badge">AI-Generated</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="prediction-grid">
+                                <div class="prediction-item">
+                                    <div class="prediction-label">Anomaly Detected</div>
+                                    <div class="prediction-value" id="anomaly-status">No</div>
+                                </div>
+                                <div class="prediction-item">
+                                    <div class="prediction-label">Root Cause</div>
+                                    <div class="prediction-value" id="root-cause">Normal operation</div>
+                                </div>
+                                <div class="prediction-item">
+                                    <div class="prediction-label">Failure Probability</div>
+                                    <div class="prediction-value" id="failure-prob">15%</div>
+                                </div>
+                                <div class="prediction-item">
+                                    <div class="prediction-label">Health Status</div>
+                                    <div class="prediction-value" id="current-health">Healthy</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="prediction-card recommendation-card">
+                        <div class="card-header">
+                            <h3>AI Recommendation</h3>
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <div class="card-content">
+                            <div class="recommendation-text" id="recommendation-text">
+                                Continue normal operation. Schedule routine maintenance.
+                            </div>
+                            <div class="recommendation-actions">
+                                <button class="action-btn primary" onclick="scheduleMaintenance()">
+                                    <i class="fas fa-calendar"></i>
+                                    Schedule Maintenance
+                                </button>
+                                <button class="action-btn secondary" onclick="acknowledgeRecommendation()">
+                                    <i class="fas fa-check"></i>
+                                    Acknowledge
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="prediction-card analysis-card">
+                        <div class="card-header">
+                            <h3>Detailed Analysis</h3>
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="card-content">
+                            <div class="analysis-metrics">
+                                <div class="metric">
+                                    <span class="metric-label">Anomaly Score:</span>
+                                    <span class="metric-value" id="anomaly-score">0.123</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Confidence:</span>
+                                    <span class="metric-value" id="confidence">87%</span>
+                                </div>
+                                <div class="metric">
+                                    <span class="metric-label">Last Updated:</span>
+                                    <span class="metric-value" id="last-updated">--:--:--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts Tab -->
+            <div id="alerts-tab" class="tab-pane">
+                <div class="alerts-container">
+                    <div class="alerts-header">
+                        <h3>System Alerts</h3>
+                        <div class="alerts-filters">
+                            <button class="filter-btn active" data-filter="all">All</button>
+                            <button class="filter-btn" data-filter="critical">Critical</button>
+                            <button class="filter-btn" data-filter="warning">Warning</button>
+                            <button class="filter-btn" data-filter="info">Info</button>
+                        </div>
+                    </div>
+
+                    <div class="alerts-list" id="alerts-list">
+                        <!-- Alerts will be populated by JavaScript -->
+                    </div>
+
+                    <div class="alerts-actions">
+                        <button class="action-btn" onclick="clearAllAlerts()">
+                            <i class="fas fa-trash"></i>
+                            Clear All Alerts
+                        </button>
+                        <button class="action-btn" onclick="refreshAlerts()">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance Tab -->
+            <div id="maintenance-tab" class="tab-pane">
+                <div class="maintenance-container">
+                    <div class="maintenance-header">
+                        <h3>Schedule Maintenance</h3>
+                        <p>Plan and schedule maintenance activities based on AI recommendations</p>
+                    </div>
+
+                    <form id="maintenance-form" class="maintenance-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="machine-name">Machine / Asset Name</label>
+                                <input type="text" id="machine-name" name="machine-name" value="PredixAI Industrial Equipment" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="machine-health">Current Machine Health</label>
+                                <select id="machine-health" name="machine-health" disabled>
+                                    <option value="healthy">Healthy</option>
+                                    <option value="warning">Warning</option>
+                                    <option value="critical">Critical</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="predicted-rul">Predicted Remaining Useful Life</label>
+                                <input type="text" id="predicted-rul" name="predicted-rul" readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="maintenance-date">Recommended Maintenance Date</label>
+                                <input type="date" id="maintenance-date" name="maintenance-date" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="maintenance-type">Maintenance Type</label>
+                                <select id="maintenance-type" name="maintenance-type" required>
+                                    <option value="">Select Type</option>
+                                    <option value="inspection">Inspection</option>
+                                    <option value="repair">Repair</option>
+                                    <option value="replacement">Replacement</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="priority">Priority</label>
+                                <select id="priority" name="priority" required>
+                                    <option value="">Select Priority</option>
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="critical">Critical</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="assigned-engineer">Assigned Engineer / Team</label>
+                                <input type="text" id="assigned-engineer" name="assigned-engineer" placeholder="Enter engineer or team name" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="maintenance-notes">Notes / Description</label>
+                            <textarea id="maintenance-notes" name="maintenance-notes" rows="4" placeholder="Enter maintenance details, parts needed, special instructions, etc." required></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="action-btn primary">
+                                <i class="fas fa-calendar-check"></i>
+                                Save & Schedule
+                            </button>
+                            <button type="button" class="action-btn secondary" onclick="resetMaintenanceForm()">
+                                <i class="fas fa-undo"></i>
+                                Reset
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div id="history-tab" class="tab-pane">
+                <div class="history-container">
+                    <div class="history-header">
+                        <h3>Maintenance History</h3>
+                        <p>View all scheduled and completed maintenance activities</p>
+                    </div>
+
+                    <div class="history-filters">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="scheduled">Scheduled</button>
+                        <button class="filter-btn" data-filter="completed">Completed</button>
+                        <button class="filter-btn" data-filter="overdue">Overdue</button>
+                    </div>
+
+                    <div class="history-list" id="history-list">
+                        <!-- Maintenance history will be populated by JavaScript -->
+                    </div>
+
+                    <div class="history-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Total Scheduled:</span>
+                            <span class="stat-value" id="total-scheduled">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Completed:</span>
+                            <span class="stat-value" id="total-completed">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Overdue:</span>
+                            <span class="stat-value" id="total-overdue">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reports-tab" class="tab-pane">
+                <div class="reports-container">
+                    <div class="reports-header">
+                        <h3>Maintenance Reports</h3>
+                        <p>Generate and download detailed maintenance reports</p>
+                    </div>
+
+                    <div class="report-card summary-report">
+                        <div class="card-header">
+                            <h3>Maintenance Summary Report</h3>
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="card-content">
+                            <div class="report-info">
+                                <div class="info-item">
+                                    <span class="info-label">Report Period:</span>
+                                    <span class="info-value">Last 30 days</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Total Readings:</span>
+                                    <span class="info-value" id="total-readings">0</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Anomalies Detected:</span>
+                                    <span class="info-value" id="anomalies-count">0</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Maintenance Actions:</span>
+                                    <span class="info-value" id="maintenance-actions">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="report-actions">
+                        <button class="report-btn primary" onclick="generateReport()">
+                            <i class="fas fa-file-pdf"></i>
+                            Generate Report
+                        </button>
+                        <button class="report-btn secondary" onclick="downloadReport()">
+                            <i class="fas fa-download"></i>
+                            Download PDF
+                        </button>
+                        <button class="report-btn" onclick="emailReport()">
+                            <i class="fas fa-envelope"></i>
+                            Email Report
+                        </button>
+                    </div>
+
+                    <div class="report-preview">
+                        <h4>Report Preview</h4>
+                        <div class="preview-content" id="report-preview">
+                            <p>No report generated yet. Click "Generate Report" to create a maintenance summary.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Processing...</span>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
